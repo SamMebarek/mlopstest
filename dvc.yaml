@@ -1,0 +1,66 @@
+# dvc.yaml
+# dvc.yaml (au format DVC 3.x, sans erreur de "extra keys" ni de double "src/")
+
+stages:
+  data_ingestion:
+    cmd: python -m ingestion.components.data_ingestion --config ../config/config.yaml --params ../config/params.yaml
+    wdir: src
+    deps:
+      - ingestion/components/data_ingestion.py
+      - ingestion/config/configuration.py
+      - ingestion/entity/config_entity.py
+      - ingestion/utils/common.py
+      - ../config/config.yaml
+      - ../config/params.yaml
+    outs:
+      - ../data/raw/ingested_data.csv
+
+  data_preprocessing:
+    cmd: python -m preprocessing.components.preprocess --config ../config/config.yaml --params ../config/params.yaml
+    wdir: src
+    deps:
+      - preprocessing/components/preprocess.py
+      - preprocessing/config/configuration.py
+      - preprocessing/entity/config_entity.py
+      - preprocessing/utils/common.py
+      - preprocessing/repository/repository.py
+      - ../config/config.yaml
+      - ../config/params.yaml
+      - ../data/raw/ingested_data.csv
+    outs:
+      - ../data/processed/clean_data.csv
+
+  model_training:
+    cmd: >
+      python -m training.components.train
+      --config ../config/config.yaml
+      --params ../config/params.yaml
+    wdir: src
+    deps:
+      - training/components/train.py
+      - training/config/configuration.py
+      - training/entity/config_entity.py
+      - training/utils/common.py
+      - training/repository/repository.py
+      - ../config/config.yaml
+      - ../config/params.yaml
+      - ../data/processed/clean_data.csv
+    outs:
+      - ../models/xgb_model.pkl
+  data_evaluation:
+    cmd: >
+      python -m evaluation.components.evaluate
+      --config ../config/config.yaml
+      --params ../config/params.yaml
+    wdir: src
+    deps:
+      - evaluation/components/evaluate.py
+      - evaluation/config/configuration.py
+      - evaluation/entity/config_entity.py
+      - evaluation/utils/common.py
+      - ../config/config.yaml
+      - ../config/params.yaml
+      - ../data/processed/clean_data.csv
+      - ../models/xgb_model.pkl
+    outs:
+      - ../evaluation/scores.json

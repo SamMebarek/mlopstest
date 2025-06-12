@@ -1,0 +1,5 @@
+# Docker artifacts
+**/src/ingestion/.dockerignore
+**/src/ingestion/Dockerfile
+# Local environment
+.env
